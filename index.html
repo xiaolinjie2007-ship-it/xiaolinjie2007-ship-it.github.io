@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>肖林杰 · 计算药物发现</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+SC:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+:root{--bg:#060b18;--bg-2:#0c1528;--bg-card:rgba(15,23,42,0.75);--bg-card-h:rgba(30,41,59,0.85);--text:#e8edf5;--text-2:#94a3b8;--text-3:#475569;--blue:#3b82f6;--cyan:#06d6a0;--purple:#8b5cf6;--amber:#f59e0b;--grad-1:linear-gradient(135deg,#3b82f6,#06d6a0);--border:rgba(59,130,246,0.1);--radius:16px;--radius-sm:10px}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:'Inter','Noto Sans SC',-apple-system,sans-serif;background:var(--bg);color:var(--text);line-height:1.7;overflow-x:hidden}
+::selection{background:rgba(59,130,246,0.35)}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--blue);border-radius:2px}
+#bg-canvas{position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:0;pointer-events:none}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(6,11,24,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);height:56px;display:flex;align-items:center;justify-content:center}
+.nav-inner{width:100%;max-width:1100px;padding:0 2rem;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{font-weight:800;font-size:1rem;background:var(--grad-1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.nav-links{display:flex;gap:2rem}
+.nav-links a{color:var(--text-2);text-decoration:none;font-size:0.78rem;font-weight:500;transition:color .3s;position:relative}
+.nav-links a::after{content:'';position:absolute;bottom:-4px;left:0;width:0;height:2px;background:var(--grad-1);transition:width .3s}
+.nav-links a:hover{color:var(--cyan)}
+.nav-links a:hover::after{width:100%}
+@media(max-width:720px){.nav-links{display:none}}
+.container{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:0 2rem}
+.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:6rem 0 2rem}
+.hero-avatar{width:130px;height:130px;border-radius:50%;object-fit:cover;object-position:center center;border:3px solid transparent;background:var(--grad-1);padding:3px;margin-bottom:1.2rem;box-shadow:0 0 30px rgba(59,130,246,0.15)}
+.hero h1{font-size:3rem;font-weight:900;letter-spacing:-1px;margin-bottom:0.2rem;background:var(--grad-1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero .subtitle{font-size:1rem;color:var(--text-2);margin-bottom:0.2rem}
+.hero .affil{font-size:0.8rem;color:var(--text-3);margin-bottom:0.3rem}
+.hero .tagline{font-size:0.85rem;color:var(--text-2);max-width:650px;margin:0 auto 1.5rem;line-height:1.8}
+.hero-stats{display:flex;gap:2.5rem;justify-content:center;flex-wrap:wrap}
+.hero-stats .stat{text-align:center}
+.hero-stats .stat-num{font-size:1.6rem;font-weight:800;font-family:'JetBrains Mono',monospace;background:var(--grad-1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-stats .stat-label{font-size:0.62rem;color:var(--text-3);text-transform:uppercase;letter-spacing:1.5px;margin-top:2px}
+.hero-cta{margin-top:1.5rem;display:flex;gap:1rem;flex-wrap:wrap;justify-content:center}
+.hero-cta a{display:inline-block;padding:0.55rem 1.5rem;border-radius:30px;font-size:0.8rem;font-weight:600;text-decoration:none;transition:all .3s}
+.hero-cta .btn-primary{background:var(--grad-1);color:#fff;box-shadow:0 4px 15px rgba(59,130,246,0.3)}
+.hero-cta .btn-primary:hover{transform:translateY(-2px);box-shadow:0 6px 25px rgba(59,130,246,0.4)}
+.hero-cta .btn-outline{border:1px solid var(--border);color:var(--text-2);background:rgba(15,23,42,0.5)}
+.hero-cta .btn-outline:hover{border-color:var(--cyan);color:var(--cyan);transform:translateY(-2px)}
+.section{padding:4rem 0}
+.section-header{margin-bottom:2rem}
+.section-label{display:inline-block;font-size:0.6rem;font-weight:600;letter-spacing:2px;text-transform:uppercase;background:var(--grad-1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:0.2rem}
+.section-title{font-size:1.8rem;font-weight:800;letter-spacing:-0.5px}
+.section-desc{color:var(--text-2);font-size:0.85rem;margin-top:0.2rem}
+.search-box{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:0.1rem 1.2rem;display:flex;align-items:center;backdrop-filter:blur(10px);transition:border-color .3s;margin-bottom:0.5rem}
+.search-box:focus-within{border-color:var(--blue);box-shadow:0 0 0 3px rgba(59,130,246,0.08)}
+.search-box .icon{color:var(--text-3);margin-right:0.5rem}
+.search-box input{flex:1;border:none;background:transparent;padding:0.8rem 0;font-size:0.88rem;color:var(--text);outline:none;font-family:inherit}
+.search-box input::placeholder{color:var(--text-3)}
+.search-results{display:none;margin-top:0.5rem}
+.search-results.active{display:block}
+.search-results .result-item{padding:0.55rem 1rem;border-radius:var(--radius-sm);background:var(--bg-card);margin-bottom:0.3rem;cursor:pointer;font-size:0.82rem;color:var(--text-2);transition:all .2s;border:1px solid transparent}
+.search-results .result-item:hover{border-color:var(--border)}
+.search-results .result-item mark{background:rgba(6,214,160,0.2);color:var(--cyan);border-radius:2px;padding:0 2px}
+.search-count{font-size:0.75rem;color:var(--text-3);margin-bottom:0.3rem}
+.tag-row{display:flex;flex-wrap:wrap;gap:0.4rem;margin-top:0.8rem}
+.tag{padding:0.25rem 0.85rem;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--text-2);font-size:0.73rem;cursor:pointer;transition:all .3s;font-family:inherit;font-weight:500}
+.tag:hover{border-color:var(--cyan);color:var(--cyan)}
+.tag.active{background:var(--grad-1);color:#fff;border-color:transparent}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
+@media(max-width:800px){.grid-2{grid-template-columns:1fr}.grid-3{grid-template-columns:1fr}}
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:1.4rem;backdrop-filter:blur(10px);transition:all .3s}
+.card:hover{transform:translateY(-2px);border-color:rgba(59,130,246,0.15);box-shadow:0 8px 30px rgba(0,0,0,0.12)}
+.card-icon{font-size:1.3rem;margin-bottom:0.4rem}
+.card h3{font-size:0.95rem;font-weight:600;margin-bottom:0.3rem}
+.card p,.card li{font-size:0.82rem;color:var(--text-2);line-height:1.7}
+.card ul{list-style:none;padding:0}
+.card li{padding:0.12rem 0;padding-left:0.5rem;border-left:2px solid var(--cyan);margin-bottom:0.12rem}
+.badge{display:inline-block;padding:0.08rem 0.45rem;border-radius:4px;font-size:0.6rem;font-weight:600;background:rgba(59,130,246,0.1);color:var(--blue);margin-right:0.2rem}
+.badge.cyan{background:rgba(6,214,160,0.1);color:var(--cyan)}
+.badge.amber{background:rgba(245,158,11,0.1);color:var(--amber)}
+.badge.purple{background:rgba(139,92,246,0.1);color:var(--purple)}
+.paper-hero{background:linear-gradient(135deg,rgba(59,130,246,0.08),rgba(6,214,160,0.04));border:1.5px solid rgba(59,130,246,0.2);border-radius:var(--radius);padding:2rem;margin-bottom:1.5rem;position:relative;overflow:hidden}
+.paper-hero::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;background:var(--grad-1);border-radius:2px}
+.paper-hero .flag{font-size:0.65rem;font-weight:600;letter-spacing:2px;text-transform:uppercase;background:var(--grad-1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:0.3rem}
+.paper-hero .big-num{font-size:2.2rem;font-weight:900;font-family:'JetBrains Mono',monospace;background:var(--grad-1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1}
+.paper-hero .big-label{font-size:0.7rem;color:var(--text-3);text-transform:uppercase;letter-spacing:1px;margin-bottom:0.8rem}
+.paper-hero .ptitle{font-size:1rem;font-weight:600;margin-bottom:0.3rem;line-height:1.5}
+.paper-hero .authors{font-size:0.82rem;color:var(--text-2);margin-bottom:0.3rem}
+.paper-hero .authors strong{color:var(--cyan)}
+.paper-hero .contrib{display:inline-block;padding:0.2rem 0.7rem;border-radius:4px;background:rgba(6,214,160,0.1);color:var(--cyan);font-size:0.72rem;font-weight:500;margin-top:0.3rem}
+.github-hero{background:linear-gradient(135deg,rgba(6,214,160,0.06),rgba(139,92,246,0.04));border:1.5px solid rgba(6,214,160,0.15);border-radius:var(--radius);padding:2rem;margin-bottom:1.5rem;position:relative;overflow:hidden}
+.github-hero .topline{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.8rem}
+.github-hero .topline .name{font-size:1.1rem;font-weight:700;color:var(--cyan)}
+.github-hero .topline .link{font-size:0.75rem;color:var(--text-3);text-decoration:none}
+.github-hero .topline .link:hover{color:var(--cyan)}
+.auc-row{display:grid;grid-template-columns:repeat(3,1fr);gap:0.6rem;margin:1rem 0}
+.auc-item{background:rgba(59,130,246,0.04);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.8rem;text-align:center;transition:all .3s}
+.auc-item:hover{border-color:rgba(59,130,246,0.3);transform:translateY(-2px)}
+.auc-item .val{font-size:1.4rem;font-weight:800;font-family:'JetBrains Mono',monospace}
+.auc-item .lbl{font-size:0.58rem;color:var(--text-3);text-transform:uppercase;letter-spacing:0.5px;margin-top:2px}
+.auc-item .dsc{font-size:0.55rem;color:var(--text-3);margin-top:2px}
+.auc-item.b1 .val{color:var(--blue)}
+.auc-item.b2 .val{color:var(--cyan)}
+.auc-item.b3 .val{color:var(--amber)}
+.connect-section{position:relative;padding:3rem 0;overflow:hidden}
+.connect-container{position:relative;width:100%;max-width:800px;height:520px;margin:0 auto}
+.connect-canvas{position:absolute;top:0;left:0;width:100%;height:100%;z-index:1;pointer-events:none}
+.connect-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:3;width:96px;height:96px;border-radius:50%;border:3px solid var(--cyan);box-shadow:0 0 30px rgba(6,214,160,0.2),0 0 60px rgba(6,214,160,0.08);overflow:hidden;cursor:pointer;transition:all .4s}
+.connect-center img{width:100%;height:100%;object-fit:cover;object-position:center center;display:block}
+.connect-center .label{position:absolute;bottom:-28px;left:50%;transform:translateX(-50%);font-size:0.72rem;font-weight:600;white-space:nowrap;color:var(--cyan);letter-spacing:1px}
+.connect-node{position:absolute;z-index:2;cursor:pointer;transition:all .3s}
+.connect-node .dot{width:14px;height:14px;border-radius:50%;margin:0 auto 6px;transition:all .3s;box-shadow:0 0 10px rgba(59,130,246,0.15)}
+.connect-node .nlabel{font-size:0.68rem;font-weight:500;text-align:center;color:var(--text-2);transition:color .3s;line-height:1.3;max-width:80px}
+.skills-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:700px){.skills-grid{grid-template-columns:1fr}}
+.skill-group{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:1.3rem;backdrop-filter:blur(10px)}
+.skill-group h4{font-size:0.78rem;font-weight:600;margin-bottom:0.6rem;text-transform:uppercase;letter-spacing:0.5px;color:var(--cyan)}
+.skill-wrap{display:flex;flex-wrap:wrap;gap:0.35rem}
+.skill-tag{padding:0.2rem 0.65rem;border-radius:6px;font-size:0.68rem;background:rgba(59,130,246,0.05);color:var(--text-2);border:1px solid var(--border);transition:all .2s}
+.skill-tag.top{background:rgba(6,214,160,0.08);border-color:rgba(6,214,160,0.2);color:var(--cyan)}
+.timeline{position:relative;padding-left:2rem}
+.timeline::before{content:'';position:absolute;left:7px;top:0;bottom:0;width:2px;background:linear-gradient(180deg,var(--blue),var(--cyan),var(--purple));opacity:.3}
+.tl-item{position:relative;margin-bottom:1.5rem;padding-left:1.5rem}
+.tl-item::before{content:'';position:absolute;left:-1.65rem;top:0.35rem;width:10px;height:10px;border-radius:50%;background:var(--cyan);border:2px solid var(--bg);box-shadow:0 0 8px rgba(6,214,160,0.2)}
+.tl-item .date{font-size:0.68rem;font-weight:600;color:var(--cyan);font-family:'JetBrains Mono',monospace;margin-bottom:0.05rem}
+.tl-item .title{font-size:0.9rem;font-weight:600;margin-bottom:0.05rem}
+.tl-item .desc{font-size:0.78rem;color:var(--text-2)}
+.gallery-section{margin-bottom:2rem}
+.gallery-section h3{font-size:0.82rem;font-weight:600;color:var(--text-2);margin-bottom:0.6rem}
+.gallery-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:0.5rem}
+.gallery-item{position:relative;border-radius:var(--radius-sm);overflow:hidden;cursor:pointer;aspect-ratio:4/3;border:1px solid var(--border);transition:all .3s}
+.gallery-item img{width:100%;height:100%;object-fit:cover;display:block}
+.gallery-item .cap{position:absolute;bottom:0;left:0;right:0;padding:0.45rem;background:linear-gradient(transparent,rgba(0,0,0,0.8));color:#ccc;font-size:0.62rem;opacity:0;transition:opacity .3s}
+.gallery-item:hover .cap,.gallery-item:hover{border-color:var(--cyan);opacity:1}
+.contact-wrap{text-align:center;border-top:1px solid var(--border);padding-top:2.5rem;margin-top:1rem}
+.qr-row{display:flex;justify-content:center;gap:2rem;flex-wrap:wrap}
+.qr-cell{text-align:center}
+.qr-cell .qr-box{width:130px;height:130px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg-card);backdrop-filter:blur(10px);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:0.68rem;color:var(--text-3);margin:0 auto;gap:4px}
+.qr-cell img{border-radius:var(--radius-sm);border:1px solid var(--border)}
+.qr-cell .label{font-size:0.68rem;color:var(--text-3);margin-top:0.3rem}
+footer{text-align:center;padding:1.5rem;color:var(--text-3);font-size:0.7rem;border-top:1px solid var(--border);margin-top:1.5rem}
+.lb{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:999;justify-content:center;align-items:center}
+.lb.active{display:flex}
+.lb img{max-width:90vw;max-height:90vh;border-radius:8px}
+.lb .close{position:absolute;top:18px;right:28px;color:#fff;font-size:2rem;cursor:pointer;opacity:.6}
+</style>
+</head>
+<body>
+<canvas id="bg-canvas"></canvas>
+<nav><div class="nav-inner"><div class="nav-logo">✦ XLJ</div><div class="nav-links"><a href="#paper">论文</a><a href="#github">开源</a><a href="#connect">关联</a><a href="#research">科研</a><a href="#skills">技能</a><a href="#timeline">轨迹</a><a href="#contact">联系</a></div></div></nav>
+<div class="lb" id="lightbox" onclick="this.classList.remove('active')"><span class="close">&times;</span><img id="lb-img" src="" alt=""></div>
+<div class="container">
+
+<section class="hero">
+<img src="img/profile.jpg" alt="" class="hero-avatar" onerror="this.style.display='none'">
+<h1>肖林杰</h1>
+<div class="subtitle">制药工程 · 河南工业大学 · 生物工程学院</div>
+<div class="affil">GPA 4.11/5.0 · 飞鸟实验班 · 生物制造实验班 · 团支书</div>
+<div class="tagline"><strong>二区 TOP 论文第三作者</strong> · <strong>GitHub 开源</strong> PerillaPeptideDesign<br>AI 辅助食物源生物活性肽虚拟筛选 · 兴趣在人工智能与生物学学科深度交叉</div>
+<div class="hero-stats"><div class="stat"><div class="stat-num">二区TOP</div><div class="stat-label">已发表论文</div></div><div class="stat"><div class="stat-num">2</div><div class="stat-label">在投论文</div></div><div class="stat"><div class="stat-num">3</div><div class="stat-label">ML 模型 AUC>0.89</div></div><div class="stat"><div class="stat-num">26</div><div class="stat-label">实验记录</div></div><div class="stat"><div class="stat-num">19</div><div class="stat-label">Python 脚本</div></div></div>
+<div class="hero-cta"><a href="#paper" class="btn-primary">📄 查看论文</a><a href="#github" class="btn-outline">🌐 GitHub 开源</a><a href="#contact" class="btn-outline">💬 联系我</a></div>
+</section>
+
+<section class="section" style="padding-top:0;">
+<div class="search-box"><span class="icon">⌕</span><input type="text" id="searchInput" placeholder="搜索：ESM-2、LightGBM、SHAP、Discovery Studio……" oninput="doSearch(this.value)"></div>
+<div class="search-results" id="searchResults"><div class="search-count" id="searchCount"></div><div id="searchList"></div></div>
+<div class="tag-row"><span class="tag active" data-tag="all" onclick="filterByTag('all')">全部</span><span class="tag" data-tag="论文" onclick="filterByTag('论文')">📄 论文</span><span class="tag" data-tag="开源" onclick="filterByTag('开源')">🌐 开源</span><span class="tag" data-tag="科研" onclick="filterByTag('科研')">🔬 科研</span><span class="tag" data-tag="竞赛" onclick="filterByTag('竞赛')">🏆 竞赛</span><span class="tag" data-tag="技能" onclick="filterByTag('技能')">⚡ 技能</span></div>
+<div class="grid-2" id="cardGrid" style="margin-top:1rem;"></div>
+</section>
+
+<section class="section" id="paper">
+<div class="section-header"><div class="section-label">✦ 核心成果 · 论文</div><h2 class="section-title">二区 TOP · 第三作者</h2><div class="section-desc">中科院二区 TOP 期刊《Food Bioscience》</div></div>
+<div class="paper-hero">
+<div style="display:flex;align-items:flex-start;gap:1.5rem;flex-wrap:wrap;margin-bottom:0.8rem;"><div style="text-align:center;min-width:100px;"><div class="big-num">二区</div><div class="big-label">TOP 期刊</div></div>
+<div style="flex:1;min-width:200px;">
+<div class="flag">▸ Food Bioscience · 中科院二区 TOP</div>
+<div class="ptitle">AI-Facilitated selenium-enriched peptides: Synthesis, bioactivity, virtual screening, and food industry potential, and future prospects</div>
+<div class="authors">Zhi-Rui Ding, Jun-Wei Chen, <strong>Lin-Jie Xiao (肖林杰)</strong>, Meng-Yu Gao, Jayani Chandrapala, Long Pan, Yang Lin, Hui-Rong Wang, Na Liu, Kang-Yi Zhang, Ai-Mei Liao*</div>
+<div style="font-size:0.72rem;color:var(--text-3);margin-bottom:0.3rem;">2026 · Vol. 78, 108624 · Food Bioscience</div>
+<div class="contrib">▸ 第三作者 · 论文翻译 · AI 科研绘图 · 新闻稿撰写</div>
+</div></div>
+<div style="font-size:0.78rem;color:var(--text-2);line-height:1.6;border-top:1px solid var(--border);padding-top:0.6rem;"><strong>研究概要：</strong>系统梳理 AI 辅助富硒肽的合成制备、结构表征、生物活性与虚拟筛选。解析机器学习、深度学习、分子对接等技术在富硒肽研发中的应用。</div>
+</div>
+<div class="grid-3">
+<div class="card"><div class="card-icon">📄</div><h3>英文学术翻译与科研绘图</h3><p style="font-size:0.8rem;">独立完成论文翻译、AI 辅助科研绘图与新闻稿撰写。</p></div>
+<div class="card"><div class="card-icon">⏳</div><h3>第三作者论文在投</h3><p style="font-size:0.8rem;">一篇第三作者论文正在投稿中。</p></div>
+<div class="card"><div class="card-icon">⏳</div><h3>第二作者论文在投</h3><p style="font-size:0.8rem;">一篇第二作者论文正在投稿中。</p></div>
+</div>
+</section>
+
+<section class="section" id="github">
+<div class="section-header"><div class="section-label">★ 核心成果 · 开源项目</div><h2 class="section-title">PerillaPeptideDesign</h2><div class="section-desc">基于 ESM-2 蛋白语言模型 + LightGBM 的多功能神经保护肽从头设计框架 · MIT 开源</div></div>
+<div class="github-hero">
+<div class="topline"><span class="name">🌐 PerillaPeptideDesign</span><a href="https://github.com/xiaolinjie2007-ship-it/PerillaPeptideDesign" target="_blank" class="link">github.com/xiaolinjie2007-ship-it/PerillaPeptideDesign ↗</a></div>
+<p style="font-size:0.82rem;color:var(--text-2);margin-bottom:0.8rem;">使用 Meta ESM-2 预训练蛋白语言模型提取多模态特征（AAC+DPC+理化性质+ESM-2 嵌入=<strong style="color:var(--text);">906 维</strong>），构建三个 LightGBM 分类器，实现多目标预测。全流程 CPU 可运行，无需 GPU。</p>
+<div class="auc-row"><div class="auc-item b1"><div class="val">0.893</div><div class="lbl">Cog-MPB</div><div class="dsc">认知障碍预防</div></div><div class="auc-item b2"><div class="val">0.919</div><div class="lbl">BBB-MPB</div><div class="dsc">血脑屏障穿透</div></div><div class="auc-item b3"><div class="val">0.926</div><div class="lbl">AIAO-MPB</div><div class="dsc">抗炎/抗氧化</div></div></div>
+<div style="display:flex;flex-wrap:wrap;gap:0.35rem;margin-bottom:0.6rem;"><span class="badge cyan">ESM-2</span><span class="badge cyan">LightGBM</span><span class="badge cyan">SHAP</span><span class="badge">10-Fold CV</span><span class="badge">CPU Only</span><span class="badge purple">MIT License</span></div>
+<div style="font-size:0.75rem;color:var(--text-2);line-height:1.6;border-top:1px solid var(--border);padding-top:0.6rem;"><strong>全流程：</strong>特征工程→三模型训练→SHAP 归因分析→滑动窗口提取 KFF→系统发育树分4亚家族→穷举组合文库 <strong>~197,000</strong> 候选→三模型双阈值过滤→PCA-KMeans 聚类质心选择→<strong>3 条代表肽</strong>（三模型平均分 &gt; 0.92）</div>
+  </div>
+
+  <div class="card" style="padding:1.5rem;margin-bottom:1.5rem;border-color:rgba(6,214,160,0.15);">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.5rem;">
+      <span style="font-size:1rem;font-weight:600;color:var(--cyan);">🌐 PeptidePredictPipeline</span>
+      <a href="https://github.com/xiaolinjie2007-ship-it/PeptidePredictPipeline" target="_blank" style="font-size:0.75rem;color:var(--text-3);text-decoration:none;">github.com/xiaolinjie2007-ship-it/PeptidePredictPipeline ↗</a>
+    </div>
+    <p style="font-size:0.8rem;color:var(--text-2);line-height:1.6;">多肽生物活性预测自动化流水线。整合酶解消化、抗氧化预测、致敏性预测、毒性预测、BBB 穿透预测，实现从蛋白序列到候选肽的全流程自动化。</p>
+    <div style="display:flex;flex-wrap:wrap;gap:0.3rem;margin-top:0.5rem;">
+      <span class="badge cyan">Python</span><span class="badge cyan">BIOPEP</span><span class="badge cyan">AnOxPePred</span>
+      <span class="badge">AllerTOP</span><span class="badge">ToxinPred3</span><span class="badge">PeptideRanker</span>
+    </div>
+  </div>
+
+</div>
+</section>
+
+<section class="section" id="connect">
+<div class="section-header"><div class="section-label">Connection</div><h2 class="section-title">能力关联图</h2><div class="section-desc">每一项能力相互支撑，汇聚成完整的科研竞争力</div></div>
+<div class="connect-section"><div class="connect-container" id="connectContainer">
+<canvas class="connect-canvas" id="connectCanvas"></canvas>
+<div class="connect-center"><img src="img/profile.jpg" alt=""><div class="label">✦ 肖林杰</div></div>
+<div class="connect-node" data-key="paper" style="top:5%;left:50%;transform:translateX(-50%);"><div class="dot" style="background:var(--blue);"></div><div class="nlabel">📄 论文<br><span style="font-size:0.6rem;color:var(--text-3);">二区 TOP</span></div></div>
+<div class="connect-node" data-key="github" style="top:18%;right:3%;"><div class="dot" style="background:var(--cyan);"></div><div class="nlabel">🌐 开源<br><span style="font-size:0.6rem;color:var(--text-3);">ESM-2+LightGBM</span></div></div>
+<div class="connect-node" data-key="ml" style="top:45%;right:0%;"><div class="dot" style="background:var(--purple);"></div><div class="nlabel">🧠 机器学习<br><span style="font-size:0.6rem;color:var(--text-3);">AUC 0.89-0.93</span></div></div>
+<div class="connect-node" data-key="bench" style="top:72%;right:5%;"><div class="dot" style="background:var(--amber);"></div><div class="nlabel">🏆 竞赛<br><span style="font-size:0.6rem;color:var(--text-3);">二等奖</span></div></div>
+<div class="connect-node" data-key="cadd" style="bottom:5%;left:50%;transform:translateX(-50%);"><div class="dot" style="background:var(--blue);"></div><div class="nlabel">🧬 CADD<br><span style="font-size:0.6rem;color:var(--text-3);">分子对接</span></div></div>
+<div class="connect-node" data-key="python" style="top:72%;left:5%;"><div class="dot" style="background:var(--cyan);"></div><div class="nlabel">💻 编程<br><span style="font-size:0.6rem;color:var(--text-3);">19 Python脚本</span></div></div>
+<div class="connect-node" data-key="wet" style="top:45%;left:0%;"><div class="dot" style="background:var(--amber);"></div><div class="nlabel">🧪 实验<br><span style="font-size:0.6rem;color:var(--text-3);">26 份记录</span></div></div>
+<div class="connect-node" data-key="speak" style="top:18%;left:3%;"><div class="dot" style="background:var(--purple);"></div><div class="nlabel">🎤 演讲<br><span style="font-size:0.6rem;color:var(--text-3);">15+ 场</span></div></div>
+</div></div>
+</section>
+
+<section class="section" id="research">
+<div class="section-header"><div class="section-label">Research</div><h2 class="section-title">科研与竞赛</h2><div class="section-desc">三项竞赛并行 · 26 份实验记录 · 19 个 Python 脚本</div></div>
+<div class="grid-2">
+<div class="card" style="border-color:rgba(59,130,246,0.15);background:linear-gradient(135deg,rgba(59,130,246,0.04),transparent);"><div class="card-icon">🏆</div><h3>生科竞赛 · 创新创业类 <span class="badge amber">二等奖</span></h3><p style="margin:0.1rem 0 0.3rem;"><span class="badge">排名第 3</span><span class="badge">省级/国家级</span></p><p style="font-size:0.8rem;">项目"麸助燃脂"。独立完成 5 篇英文学术翻译、Figure 1-8 TIF 期刊级图表、AI 配图。</p></div>
+<div class="card"><div class="card-icon">🧪</div><h3>生科竞赛 · 科学探究类 <span class="badge cyan">入围国赛</span></h3><p style="margin:0.1rem 0 0.3rem;"><span class="badge cyan">入围国赛</span></p><p style="font-size:0.8rem;">谷朊粉富硒肽：6 菌株筛选 + FTIR/CD/SEM + DPPH/ABTS + MKN-45/MKN-74 细胞实验 + DS 分子对接 3 轮 + 26 份实验记录。</p></div>
+<div class="card"><div class="card-icon">💼</div><h3>挑战杯 · 创新大赛 <span class="badge">校赛入围</span></h3><p style="font-size:0.8rem;">"麦向新肽"——AI 赋能麦胚认知肽。37 页路演 PPT + 商业计划书。</p></div>
+<div class="card"><div class="card-icon">🧬</div><h3>分子对接实战</h3><p style="font-size:0.8rem;">可用 Discovery Studio 进行分子对接操作，并持续学习 AutoDockTools。对接结果使用 PyMOL 进行可视化分析。</p><div style="margin-top:0.2rem;"><span class="badge">Discovery Studio</span><span class="badge">PyMOL</span><span class="badge">AutoDockTools</span></div></div>
+</div>
+</section>
+
+<section class="section" id="skills">
+<div class="section-header"><div class="section-label">Skills</div><h2 class="section-title">技术栈</h2><div class="section-desc">有产出证据的技能 · 严格区分"已掌握"与"提升中"</div></div>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.8rem;">
+<div class="card"><h4 style="font-size:0.75rem;font-weight:600;color:var(--cyan);margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:0.5px;">🧠 机器学习</h4><div class="skills-wrap"><span class="skill-tag top">ESM-2</span><span class="skill-tag top">LightGBM</span><span class="skill-tag top">SHAP</span><span class="skill-tag top">Scikit-learn</span><span class="skill-tag top">PCA/KMeans</span></div></div>
+<div class="card"><h4 style="font-size:0.75rem;font-weight:600;color:var(--cyan);margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:0.5px;">🧬 CADD</h4><div class="skills-wrap"><span class="skill-tag top">Discovery Studio</span><span class="skill-tag top">AutoDock Vina</span><span class="skill-tag top">PyMOL</span><span class="skill-tag top">ChemDraw/Chem3D</span><span class="skill-tag top">BIOPEP</span></div></div>
+<div class="card"><h4 style="font-size:0.75rem;font-weight:600;color:var(--cyan);margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:0.5px;">💻 编程</h4><div class="skills-wrap"><span class="skill-tag top">Python（19 脚本）</span><span class="skill-tag top">Node.js</span><span class="skill-tag top">OpenXML</span><span class="skill-tag top">IMAP</span><span class="skill-tag top">Playwright</span></div></div>
+<div class="card"><h4 style="font-size:0.75rem;font-weight:600;color:var(--cyan);margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:0.5px;">🎨 可视化</h4><div class="skills-wrap"><span class="skill-tag top">Adobe AI/PS</span><span class="skill-tag top">ChatGPT/Gemini</span><span class="skill-tag top">Origin</span></div></div>
+<div class="card"><h4 style="font-size:0.75rem;font-weight:600;color:var(--cyan);margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:0.5px;">🧪 实验</h4><div class="skills-wrap"><span class="skill-tag top">微生物发酵</span><span class="skill-tag top">细胞培养</span></div></div>
+<div class="card"><h4 style="font-size:0.75rem;font-weight:600;color:var(--text-3);margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:0.5px;">📌 提升中</h4><div class="skills-wrap"><span class="skill-tag" style="border-color:transparent;color:var(--text-3);font-style:italic;">MATLAB</span><span class="skill-tag" style="border-color:transparent;color:var(--text-3);font-style:italic;">合成生物学</span><span class="skill-tag" style="border-color:transparent;color:var(--text-3);font-style:italic;">代谢工程</span><span class="skill-tag" style="border-color:transparent;color:var(--text-3);font-style:italic;">分子动力学</span><span class="skill-tag" style="border-color:transparent;color:var(--text-3);font-style:italic;">深度学习</span></div></div>
+</div>
+</section>
+
+<section class="section" id="timeline">
+<div class="section-header"><div class="section-label">Timeline</div><h2 class="section-title">成长轨迹</h2><div class="section-desc">从新生代表到二区论文第三作者 + GitHub 开源项目</div></div>
+<div class="card" style="padding:2rem;"><div class="timeline">
+<div class="tl-item"><div class="date">2025.08</div><div class="title">新生代表当选</div><div class="desc">校竞选进入复选 → 生工院新生代表，开学典礼发言</div></div>
+<div class="tl-item"><div class="date">2025.09</div><div class="title">全面铺开</div><div class="desc">飞鸟班+宣讲团+学生会+3 场演讲</div></div>
+<div class="tl-item"><div class="date">2025.10</div><div class="title">团支书当选</div><div class="desc">竞选成功，组织团日活动</div></div>
+<div class="tl-item"><div class="date">2025.11</div><div class="title">演讲二等奖</div><div class="desc">校级二等奖 + 职业生涯规划大赛</div></div>
+<div class="tl-item"><div class="date">2025.12</div><div class="title">社区宣讲（官网报道）</div><div class="desc">澜景社区宣讲</div></div>
+<div class="tl-item"><div class="date">2026.01-02</div><div class="title">领导力验证</div><div class="desc">返乡宣讲 + 社会实践（校院双优）</div></div>
+<div class="tl-item"><div class="date">2026.03-04</div><div class="title">科研爆发</div><div class="desc">三项竞赛并行 + 二等奖（排第3）+ 探究类入围国赛</div></div>
+<div class="tl-item" style="border-left-color:var(--blue);"><div class="date" style="color:var(--blue);">2026</div><div class="title">⭐ 二区 TOP 论文 · 第三作者</div><div class="desc">Food Bioscience · Vol. 78, 108624</div></div>
+<div class="tl-item" style="border-left-color:var(--cyan);"><div class="date" style="color:var(--cyan);">2026</div><div class="title">⭐ GitHub 开源</div><div class="desc">PerillaPeptideDesign</div></div>
+<div class="tl-item"><div class="date">2026.05</div><div class="title">持续突破</div><div class="desc">大学生论坛发言人 + 生物制造实验班入选</div></div>
+</div></div>
+</section>
+
+<section class="section" id="gallery">
+<div class="section-header"><div class="section-label">Gallery</div><h2 class="section-title">光影记录</h2><div class="section-desc">宣讲、实践与成长</div></div>
+<div class="gallery-section"><h3>📍 澜景社区宣讲 · 2025.12（河南工业大学官网报道）</h3><div class="gallery-grid">
+<div class="gallery-item" onclick="openLB(this)"><img src="img/community1.jpg" alt="" onerror="this.parentElement.style.display='none'"><div class="cap">社区宣讲</div></div>
+<div class="gallery-item" onclick="openLB(this)"><img src="img/community2.jpg" alt="" onerror="this.parentElement.style.display='none'"><div class="cap">宣讲现场</div></div>
+<div class="gallery-item" onclick="openLB(this)"><img src="img/community_3.jpg" alt="" onerror="this.parentElement.style.display='none'"><div class="cap">活动记录</div></div>
+<div class="gallery-item" onclick="openLB(this)"><img src="img/community_5.jpg" alt="" onerror="this.parentElement.style.display='none'"><div class="cap">合影</div></div>
+<div class="gallery-item" onclick="openLB(this)"><img src="img/community_8.jpg" alt="" onerror="this.parentElement.style.display='none'"><div class="cap">活动记录</div></div>
+<div class="gallery-item" onclick="openLB(this)"><img src="img/community_10.jpg" alt="" onerror="this.parentElement.style.display='none'"><div class="cap">合影</div></div>
+</div></div>
+<div class="gallery-section"><h3>🌟 "微光成炬"社会实践 · 2026.02（校院双优）</h3><div class="gallery-grid">
+<div class="gallery-item" onclick="openLB(this)"><img src="img/practice1.jpg" alt="" onerror="this.parentElement.style.display='none'"><div class="cap">十四五成就</div></div>
+<div class="gallery-item" onclick="openLB(this)"><img src="img/practice_3.jpg" alt="" onerror="this.parentElement.style.display='none'"><div class="cap">宣讲准备</div></div>
+<div class="gallery-item" onclick="openLB(this)"><img src="img/practice_4.jpg" alt="" onerror="this.parentElement.style.display='none'"><div class="cap">宣讲准备</div></div>
+<div class="gallery-item" onclick="openLB(this)"><img src="img/practice_6.jpg" alt="" onerror="this.parentElement.style.display='none'"><div class="cap">宣讲现场</div></div>
+<div class="gallery-item" onclick="openLB(this)"><img src="img/practice_9.jpg" alt="" onerror="this.parentElement.style.display='none'"><div class="cap">致谢</div></div>
+</div></div>
+<div class="gallery-section"><h3>🏫 工大学子家乡行 · 2026.01（福安三中）</h3><div class="gallery-grid">
+<div class="gallery-item" onclick="openLB(this)"><img src="img/homecoming1.jpg" alt="" onerror="this.parentElement.style.display='none'"><div class="cap">福安三中</div></div>
+<div class="gallery-item" onclick="openLB(this)"><img src="img/homecoming2.jpg" alt="" onerror="this.parentElement.style.display='none'"><div class="cap">校园</div></div>
+<div class="gallery-item" onclick="openLB(this)"><img src="img/homecoming_3.jpg" alt="" onerror="this.parentElement.style.display='none'"><div class="cap">活动</div></div>
+<div class="gallery-item" onclick="openLB(this)"><img src="img/homecoming_4.jpg" alt="" onerror="this.parentElement.style.display='none'"><div class="cap">宣讲现场</div></div>
+<div class="gallery-item" onclick="openLB(this)"><img src="img/homecoming_5.jpg" alt="" onerror="this.parentElement.style.display='none'"><div class="cap">合影</div></div>
+</div></div>
+<div class="gallery-section"><h3>🎙️ 大学生论坛 · 2026.05</h3><div class="gallery-grid">
+<div class="gallery-item" onclick="openLB(this)"><img src="img/wusi_1.jpg" alt="" onerror="this.parentElement.style.display='none'"><div class="cap">论坛现场</div></div>
+<div class="gallery-item" onclick="openLB(this)"><img src="img/wusi_2.jpg" alt="" onerror="this.parentElement.style.display='none'"><div class="cap">活动现场</div></div>
+<div class="gallery-item" onclick="openLB(this)"><img src="img/wusi_3.jpg" alt="" onerror="this.parentElement.style.display='none'"><div class="cap">活动现场</div></div>
+<div class="gallery-item" onclick="openLB(this)"><img src="img/wusi_5.jpg" alt="" onerror="this.parentElement.style.display='none'"><div class="cap">活动</div></div>
+</div></div>
+</section>
+
+<section class="section" id="contact">
+<div class="contact-wrap">
+<h2 style="font-size:1.3rem;font-weight:700;margin-bottom:0.2rem;">联系我</h2>
+<p style="color:var(--text-2);margin-bottom:1.5rem;font-size:0.82rem;">一起学习 · 交流科研 · 共同成长</p>
+<div class="qr-row">
+<div class="qr-cell"><img src="img/wechat.jpg" style="width:130px;height:130px;border-radius:var(--radius-sm);border:1px solid var(--border);object-fit:cover;" alt=""><div class="label">WeChat</div></div>
+<div class="qr-cell"><div class="qr-box"><span class="big-icon">📧</span>xlj15892139592@qq.com</div><div class="label">Email</div></div>
+<div class="qr-cell"><div class="qr-box"><span class="big-icon">🐙</span>PerillaPeptideDesign</div><div class="label">GitHub</div></div>
+</div></div>
+</section>
+</div>
+<footer>© 2026 肖林杰 · 计算药物发现</footer>
+
+<script>
+var c=document.getElementById('bg-canvas'),cx=c.getContext('2d'),W,H,pts=[];
+resize();window.addEventListener('resize',resize);
+function resize(){W=c.width=window.innerWidth;H=c.height=window.innerHeight;}
+function Pt(){this.x=Math.random()*W;this.y=Math.random()*H;this.r=Math.random()*2+0.5;this.vx=(Math.random()-0.5)*0.12;this.vy=(Math.random()-0.5)*0.12;this.a=Math.random()*0.2+0.03;this.c=Math.random()>0.6?'59,130,246':Math.random()>0.5?'6,214,160':'139,92,246';}
+Pt.prototype.update=function(){this.x+=this.vx;this.y+=this.vy;if(this.x<0||this.x>W)this.vx*=-1;if(this.y<0||this.y>H)this.vy*=-1;};
+Pt.prototype.draw=function(){cx.beginPath();cx.arc(this.x,this.y,this.r,0,Math.PI*2);cx.fillStyle='rgba('+this.c+','+this.a+')';cx.fill();};
+for(var i=0;i<60;i++)pts.push(new Pt());
+function anim(){cx.clearRect(0,0,W,H);for(var i=0;i<pts.length;i++){pts[i].update();pts[i].draw();for(var j=i+1;j<pts.length;j++){var dx=pts[i].x-pts[j].x,dy=pts[i].y-pts[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<100){cx.beginPath();cx.moveTo(pts[i].x,pts[i].y);cx.lineTo(pts[j].x,pts[j].y);cx.strokeStyle='rgba(59,130,246,'+(0.03*(1-d/100))+')';cx.lineWidth=0.5;cx.stroke();}}}requestAnimationFrame(anim);}
+anim();
+
+var data=[
+{t:'Food Bioscience 二区TOP · 第三作者',tag:'论文',em:'📄',d:'AI-Facilitated selenium-enriched peptides. Food Bioscience 2026, Vol.78, 108624。论文翻译、AI科研绘图、新闻稿。'},
+{t:'第三作者论文在投',tag:'论文',em:'⏳',d:'一篇第三作者论文正在投稿中。'},
+{t:'第二作者论文在投',tag:'论文',em:'⏳',d:'一篇第二作者论文正在投稿中。'},
+{t:'PerillaPeptideDesign · GitHub 开源',tag:'开源',em:'🌐',d:'ESM-2+LightGBM 多模态神经保护肽从头设计。三模型 AUC: 0.893/0.919/0.926。CPU 可运行。MIT 开源。'},
+{t:'生科竞赛·创新创业类 二等奖',tag:'竞赛',em:'🏆',d:'省级/国家级二等奖，排名第3。5篇英文翻译+Figure 1-8 TIF图表+AI配图。'},
+{t:'生科竞赛·科学探究类(入围国赛)',tag:'竞赛',em:'🧪',d:'谷朊粉富硒肽：6菌株+FTIR/CD/SEM+细胞实验+DS分子对接3轮+26份记录。已入围国赛。'},
+{t:'挑战杯·校赛入围',tag:'竞赛',em:'💼',d:'"麦向新肽"——AI赋能麦胚认知肽。37页路演PPT+商业计划书。'},
+{t:'分子对接实战',tag:'科研',em:'🧬',d:'可用Discovery Studio进行分子对接操作，并持续学习AutoDockTools。对接结果使用PyMOL可视化分析。'},
+{t:'ESM-2+LightGBM 建模',tag:'技能',em:'⚡',d:'906维多模态特征。三模型10-Fold CV。SHAP归因分析。'},
+{t:'PeptideRanker全自动提交',tag:'技能',em:'🤖',d:'427行Python+Node.js。Playwright→IMAP监控邮箱→自动下载→回写Excel。'},
+{t:'PeptidePredictPipeline · GitHub',tag:'开源',em:'🌐',d:'多肽生物活性预测自动化流水线：酶解/抗氧化/致敏性/毒性/BBB穿透全流程预测。'},{t:'Python工具链(19脚本)',tag:'技能',em:'💻',d:'全自动pipeline/浏览器自动化/IMAP监控/OpenXML零依赖。'},
+];
+var activeTag='all';
+function filterByTag(t){activeTag=t;document.querySelectorAll('.tag').forEach(function(n){n.classList.toggle('active',n.dataset.tag===t);});render();}
+function render(){var g=document.getElementById('cardGrid');var f=activeTag==='all'?data:data.filter(function(d){return d.tag===activeTag;});var h='';for(var i=0;i<f.length;i++){h+='<div class="card"><div class="card-icon">'+f[i].em+'</div><h3>'+f[i].t+'</h3><div style="margin-bottom:0.2rem;"><span class="badge">'+f[i].tag+'</span></div><p>'+f[i].d+'</p></div>';}g.innerHTML=h;}
+render();
+function doSearch(q){var r=document.getElementById('searchResults'),l=document.getElementById('searchList'),c=document.getElementById('searchCount');var s=q.trim().toLowerCase();if(!s){r.classList.remove('active');return;}var hits=[];for(var i=0;i<data.length;i++){if((data[i].t+data[i].d+data[i].tag).toLowerCase().indexOf(s)>=0)hits.push(data[i]);}if(!hits.length){l.innerHTML='<div style="color:var(--text-3);padding:0.8rem;">未找到结果</div>';c.textContent='';}else{var h='';for(var i=0;i<Math.min(15,hits.length);i++){h+='<div class="result-item" onclick="goTag(\''+hits[i].tag+'\')">'+hits[i].em+' <strong>'+hl(hits[i].t,s)+'</strong> <span style="color:var(--text-3);margin-left:0.4rem;">'+hl(hits[i].d.substring(0,60),s)+'</span></div>';}l.innerHTML=h;c.textContent='找到 '+hits.length+' 个结果';}r.classList.add('active');}
+function hl(t,q){var i=t.toLowerCase().indexOf(q);return i===-1?t:t.substring(0,i)+'<mark>'+t.substring(i,i+q.length)+'</mark>'+t.substring(i+q.length);}
+function goTag(t){filterByTag(t);document.getElementById('searchResults').classList.remove('active');document.getElementById('searchInput').value='';}
+function openLB(el){var img=el.querySelector('img');if(!img||!img.src)return;document.getElementById('lb-img').src=img.src;document.getElementById('lightbox').classList.add('active');}
+document.addEventListener('keydown',function(e){if(e.key==='Escape')document.getElementById('lightbox').classList.remove('active');});
+(function(){var container=document.getElementById('connectContainer');var canvas=document.getElementById('connectCanvas');if(!container||!canvas)return;var ctx=canvas.getContext('2d');var W,H;function resize(){var rect=container.getBoundingClientRect();W=canvas.width=rect.width||800;H=canvas.height=rect.height||520;}resize();window.addEventListener('resize',function(){resize();draw();});function getPositions(){var cr=container.getBoundingClientRect();var nodes=container.querySelectorAll('.connect-node');return Array.from(nodes).map(function(n){var r=n.getBoundingClientRect();return{x:r.left-cr.left+r.width/2,y:r.top-cr.top+r.height/2,key:n.dataset.key||''};});}function draw(){ctx.clearRect(0,0,W,H);var cx=W/2,cy=H/2;var pos=getPositions();var ak=(document.querySelector('.connect-node:hover')||{}).dataset&&document.querySelector('.connect-node:hover').dataset.key;pos.forEach(function(p){var dx=p.x-cx,dy=p.y-cy,a=Math.atan2(dy,dx),sx=cx+48*Math.cos(a),sy=cy+48*Math.sin(a),ex=p.x-7*Math.cos(a),ey=p.y-7*Math.sin(a),mx=(sx+ex)/2,my=(sy+ey)/2,px=-(ey-sy)*0.15,py=(ex-sx)*0.15;ctx.beginPath();ctx.moveTo(sx,sy);ctx.quadraticCurveTo(mx+px,my+py,ex,ey);ctx.strokeStyle=ak===p.key?'rgba(6,214,160,0.5)':'rgba(59,130,246,0.12)';ctx.lineWidth=ak===p.key?2.5:1.2;ctx.stroke();});requestAnimationFrame(draw);}draw();})();
+</script>
+</body>
+</html>
